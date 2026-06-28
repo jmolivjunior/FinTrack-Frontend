@@ -19,6 +19,7 @@ export default function Dashboard() {
     const [category, setCategory] = useState("");
     const [type, setType] = useState("Expense");
     const [isFixed, setIsFixed] = useState(false);
+    const [installments, setInstallments] = useState(1);
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const navigate = useNavigate();
@@ -43,7 +44,8 @@ export default function Dashboard() {
                 amount: parseFloat(amount),
                 category,
                 type,
-                isFixed
+                isFixed,
+                installments
             });
             setDescription("");
             setAmount("");
@@ -51,6 +53,7 @@ export default function Dashboard() {
             setType("Expense");
             loadTransactions();
             setIsFixed(false);
+            setInstallments(1);
             alert("Transação adicionada com sucesso! ✅");
         } catch (err) {
             alert("Erro ao adicionar transação!");
@@ -76,8 +79,8 @@ export default function Dashboard() {
     const filteredTransactions = transactions.filter((t) => {
         const date = new Date(t.date);
         const sameMonth = date.getMonth() + 1 === selectedMonth &&
-           date.getFullYear() === selectedYear;
-           return sameMonth || t.isFixed;
+            date.getFullYear() === selectedYear;
+        return sameMonth || t.isFixed;
     });
 
     const totalIncome = filteredTransactions
@@ -186,6 +189,20 @@ export default function Dashboard() {
                     </select>
                 </div>
                 <div className="flex items-center gap-2 mt-4">
+                    <div className="flex items-center gap-4 mt-4">
+                        <label className="text-gray-700 font-bold">Parcelas</label>
+                        <input
+                            type="number"
+                            min={1}
+                            max={48}
+                            value={installments}
+                            onChange={(e) => setInstallments(Number(e.target.value))}
+                            className="border p-2 rounded w-20"
+                        />
+                        <span className="text-gray-500 text-sm">
+                            {installments > 1 ? `${installments}x de €${amount ? (parseFloat(amount) / installments).toFixed(2) : "0.00"}` : "Pagamento único"}
+                        </span>
+                    </div>
                     <input
                         type="checkbox"
                         id="isFixed"
