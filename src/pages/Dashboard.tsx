@@ -17,6 +17,8 @@ export default function Dashboard(){
     const[amount, setAmount] = useState("");
     const[category, setCategory] = useState("");
     const[type, setType] = useState("Expense");
+    const[selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+    const[selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const navigate = useNavigate();
 
     useEffect(() =>{
@@ -63,15 +65,22 @@ export default function Dashboard(){
         localStorage.removeItem("token");
         navigate("/")
     };
-    const totalIncome = transactions
+        
+    const filteredTransactions = transactions.filter((t) =>{
+         const date = new Date(t.date);
+        return date.getMonth() + 1 === selectedMonth &&
+               date.getFullYear() === selectedYear;
+    });
+
+    const totalIncome = filteredTransactions
         .filter((t) => t.type === "Income")
         .reduce((sum, t) => sum + t.amount, 0);
     
-    const totalExpense = transactions
+    const totalExpense = filteredTransactions
         .filter((t) => t.type === "Expense")
         .reduce((sum, t) => sum + t.amount, 0);
         
-    const balance = totalIncome - totalExpense;   
+    const balance = totalIncome - totalExpense; 
 
     return(
          <div className="min-h-screen bg-gray-100 p-8">
@@ -84,6 +93,39 @@ export default function Dashboard(){
                     Logout
                 </button>
         </div>
+
+        <div className="bg-white p-4 rounded-lg shadow-md mb-8 flex gap-4 items-center">
+            <h2 className="font-bold text-gray-700">Filtrar por:</h2>
+            <select
+                value={selectedMonth}
+                 onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                className="border p-2 rounded"
+                >
+                <option value={1}>Janeiro</option>
+                <option value={2}>Fevereiro</option>
+                <option value={3}>Março</option>
+                <option value={4}>Abril</option>
+                <option value={5}>Maio</option>
+                <option value={6}>Junho</option>
+                <option value={7}>Julho</option>
+                <option value={8}>Agosto</option>
+                <option value={9}>Setembro</option>
+                <option value={10}>Outubro</option>
+                <option value={11}>Novembro</option>
+                <option value={12}>Dezembro</option>
+                </select>
+                <select
+                     value={selectedYear}
+                     onChange={(e) =>setSelectedYear(Number(e.target.value))}
+                     className="border p-2 rounded"
+                     >
+                        <option value={2026}>2026</option>
+                        <option value={2027}>2027</option>
+                        <option value={2028}>2028</option>
+                        <option value={2029}>2029</option>
+                     </select>
+        </div>
+
         <div className="grid grid-cols-3 gap-4 mb-8">
             <div className="bg-white p-6 rounded-lg shadow-md text-center">
                 <p className="text-gray-500 text-sm">Total Receitas</p>
