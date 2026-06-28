@@ -12,6 +12,14 @@ interface Transaction {
     isFixed: boolean;
 }
 
+interface Budget {
+    id: number;
+    category: string;
+    limit: number;
+    month: number;
+    year: number;
+}
+
 export default function Dashboard() {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [description, setDescription] = useState("");
@@ -20,12 +28,17 @@ export default function Dashboard() {
     const [type, setType] = useState("Expense");
     const [isFixed, setIsFixed] = useState(false);
     const [installments, setInstallments] = useState(1);
+    const [budgets, setBudgets] = useState<Budget[]>([]);
+    const [budgetCategory, setBudgetCategory] = useState("");
+    const [budgetLimit, setBudgetLimit] = useState("");
+    const [showBudgetForm, setShowBudgetForm] = useState(false);
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const navigate = useNavigate();
 
     useEffect(() => {
         loadTransactions();
+        loadBudgets();
     }, []);
 
     const loadTransactions = async () => {
@@ -34,6 +47,41 @@ export default function Dashboard() {
             setTransactions(response.data);
         } catch (err) {
             navigate("/");
+        }
+    };
+
+    const loadBudgets = async () => {
+        try {
+            const response = await api.get("/budget");
+            setBudgets(response.data);
+        } catch (err) {
+            console.log("Erro ao carregar orçamentos")
+        }
+    };
+
+    const handleAddBudget = async () => {
+        try {
+            await api.post("/budget", {
+                category: budgetCategory,
+                limit: parseFloat(budgetLimit),
+                month: selectedMonth,
+                year: selectedYear,
+            });
+            setBudgetCategory("");
+            setBudgetLimit("");
+            setShowBudgetForm(false);
+            loadBudgets();
+        } catch (err) {
+            alert("Erro ao adicionar orçamento!");
+        }
+    };
+
+    const handleDeleteBudget = async (id: number) => {
+        try {
+            await api.delete(`/budget/${id}`);
+            loadBudgets();
+        } catch (err) {
+            alert("Erro ao apagar orçamento!");
         }
     };
 
@@ -152,6 +200,81 @@ export default function Dashboard() {
                         €{balance.toFixed(2)}
                     </p>
                 </div>
+
+            </div>
+
+            <div className="bg-white p-6 rounded-lg shadow-md mb-8">
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-bold">Orçamentos</h2>
+                    <button
+                        onClick={() => setShowBudgetForm(!showBudgetForm)}
+                        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                    >
+                        {showBudgetForm ? "Cancelar" : "+ Novo Orçamento"}
+                    </button>
+                </div>
+
+                {showBudgetForm && (
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                        <input
+                            type="text"
+                            placeholder="Categoria (ex: Food)"
+                            value={budgetCategory}
+                            onChange={(e) => setBudgetCategory(e.target.value)}
+                            className="border p-2 rounded"
+                        />
+                        <input
+                            type="number"
+                            placeholder="Limite (€)"
+                            value={budgetLimit}
+                            onChange={(e) => setBudgetLimit(e.target.value)}
+                            className="border p-2 rounded"
+                        />
+                        <button
+                            onClick={handleAddBudget}
+                            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                        >
+                            Guardar Orçamento
+                        </button>
+                    </div>
+                )}
+
+                {budgets.filter((b) => b.month === selectedMonth && b.year === selectedYear).map((b) => {
+                    const spent = filteredTransactions
+                        .filter((t) => t.category === b.category && t.type === "Expense")
+                        .reduce((sum, t) => sum + t.amount, 0);
+                    const percentage = Math.min((spent / b.limit) * 100, 100);
+                    const isOver = spent > b.limit;
+                    return (
+                        <div key={b.id} className="mb-4">
+                            <div className="flex justify-between items-center mb-1">
+                                <span className="font-bold">{b.category}</span>
+                                <div className="flex items-center gap-2">
+                                    <span className={isOver ? "text-red-500 font-bold" : "text-gray-600"}>
+                                        €{spent.toFixed(2)} / €{b.limit.toFixed(2)}
+                                    </span>
+                                    <button
+                                        onClick={() => handleDeleteBudget(b.id)}
+                                        className="text-red-500 hover:text-red-700 text-sm"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-4">
+                                <div
+                                    className={`h-4 rounded-full ${isOver ? "bg-red-500" : "bg-green-500"}`}
+                                    style={{ width: `${percentage}%` }}
+                                />
+                            </div>
+                            {isOver && (
+                                <p className="text-red-500 text-sm mt-1">
+                                    ⚠️ Ultrapassaste o orçamento em €{(spent - b.limit).toFixed(2)}!
+                                </p>
+                            )}
+                        </div>
+                    );
+                })}
 
             </div>
 
