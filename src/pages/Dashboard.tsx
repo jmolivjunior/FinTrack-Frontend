@@ -47,16 +47,19 @@ export default function Dashboard(){
             setCategory("");
             setType("Expense");
             loadTransactions();
+            alert("Transação adicionada com sucesso! ✅");
         }catch(err){
             alert("Erro ao adicionar transação!");
         }
     };
     const handleDelete = async (id: number) => {
-        try {
+        const confirm = window.confirm("Tens a certeza que queres apagar esta transação?");
+        if (!confirm) return;
+        try{
             await api.delete(`/transaction/${id}`);
             loadTransactions();
-        }catch (err) {
-            alert("Erro ao apagar transação!");
+        } catch(err) {
+            alert("Erro ao apagar Transação")
         }
             
     };
@@ -187,10 +190,10 @@ export default function Dashboard(){
   
       <div className="bg-white p-6 rounded-lg shadow-md">
         <h2 className="text-xl font-bold mb-4">Transações</h2>
-        {transactions.length === 0 ? (
+        {filteredTransactions.length === 0 ? (
           <p className="text-gray-500">Nenhuma transação encontrada.</p>
         ) : (
-          transactions.map((t) => (
+          filteredTransactions.map((t) => (
             <div
               key={t.id}
               className="flex justify-between items-center border-b py-3"
