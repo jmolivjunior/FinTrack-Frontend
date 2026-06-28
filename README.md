@@ -32,4 +32,16 @@ git clone https://github.com/jmolivjunior/FinTrack-Frontend.git
 2. Enter the folder
 cd fintrack-frontend
 
-3. Install
+3. Install dependencies
+npm install
+
+4. Start the app
+npm start
+
+5. Open the browser
+http://localhost:3000
+
+## Backend
+
+The backend repository is available at:
+https://github.com/jmolivjunior/FinTrack
