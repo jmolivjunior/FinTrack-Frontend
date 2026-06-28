@@ -63,6 +63,15 @@ export default function Dashboard(){
         localStorage.removeItem("token");
         navigate("/")
     };
+    const totalIncome = transactions
+        .filter((t) => t.type === "Income")
+        .reduce((sum, t) => sum + t.amount, 0);
+    
+    const totalExpense = transactions
+        .filter((t) => t.type === "Expense")
+        .reduce((sum, t) => sum + t.amount, 0);
+        
+    const balance = totalIncome - totalExpense;   
 
     return(
          <div className="min-h-screen bg-gray-100 p-8">
@@ -74,6 +83,23 @@ export default function Dashboard(){
                 >
                     Logout
                 </button>
+        </div>
+        <div className="grid grid-cols-3 gap-4 mb-8">
+            <div className="bg-white p-6 rounded-lg shadow-md text-center">
+                <p className="text-gray-500 text-sm">Total Receitas</p>
+                <p className="text-green-500 text-2xl font-bold">+€{totalIncome.toFixed(2)}</p>
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow-md text-center">
+                <p className="text-gray-500 text-sm">Total Despesas</p>
+                <p className="text-red-500 text-2xl font-bold">-€{totalExpense.toFixed(2)}</p>
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow-md text-center">
+                <p className="text-gray-500 text-sm">Saldo</p>
+                <p className={balance >= 0 ? "text-green-500 text-2xl font-bold" :"text-red-500 text-2xl font-bold"}>
+                     €{balance.toFixed(2)}
+                </p>
+            </div>
+
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow-md mb-8">
