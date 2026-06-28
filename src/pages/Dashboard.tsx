@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
+import Charts from "../components/Charts";
 
 interface Transaction {
     id: number;
@@ -34,6 +35,7 @@ export default function Dashboard() {
     const [showBudgetForm, setShowBudgetForm] = useState(false);
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+    const [darkMode, setDarkMode] = useState(false)
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -142,18 +144,26 @@ export default function Dashboard() {
     const balance = totalIncome - totalExpense;
 
     return (
-        <div className="min-h-screen bg-gray-100 p-8">
+        <div className={`min-h-screen p-8 ${darkMode ? "bg-gray-900" : "bg-gray-100"}`}>
             <div className="flex justify-between items-center mb-8">
                 <h1 className="text-3xl font-bold text-blue-600">FinTrack</h1>
-                <button
-                    onClick={handleLogout}
-                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-                >
-                    Logout
-                </button>
+                <div className="flex gap-4">
+                    <button
+                        onClick={() => setDarkMode(!darkMode)}
+                        className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800"
+                    >
+                        {darkMode ? "☀️ Claro" : "🌙 Escuro"}
+                    </button>
+                    <button
+                        onClick={handleLogout}
+                        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                    >
+                        Logout
+                    </button>
+                </div>
             </div>
 
-            <div className="bg-white p-4 rounded-lg shadow-md mb-8 flex gap-4 items-center">
+            <div className={`p-4 rounded-lg shadow-md mb-8 flex gap-4 items-center ${darkMode ? "bg-gray-800 text-white" : "bg-white"}`}>
                 <h2 className="font-bold text-gray-700">Filtrar por:</h2>
                 <select
                     value={selectedMonth}
@@ -186,15 +196,15 @@ export default function Dashboard() {
             </div>
 
             <div className="grid grid-cols-3 gap-4 mb-8">
-                <div className="bg-white p-6 rounded-lg shadow-md text-center">
+               <div className={`p-6 rounded-lg shadow-md text-center ${darkMode ? "bg-gray-800" : "bg-white"}`}>
                     <p className="text-gray-500 text-sm">Total Receitas</p>
                     <p className="text-green-500 text-2xl font-bold">+€{totalIncome.toFixed(2)}</p>
                 </div>
-                <div className="bg-white p-6 rounded-lg shadow-md text-center">
+                <div className={`p-6 rounded-lg shadow-md text-center ${darkMode ? "bg-gray-800" : "bg-white"}`}>
                     <p className="text-gray-500 text-sm">Total Despesas</p>
                     <p className="text-red-500 text-2xl font-bold">-€{totalExpense.toFixed(2)}</p>
                 </div>
-                <div className="bg-white p-6 rounded-lg shadow-md text-center">
+                <div className={`p-6 rounded-lg shadow-md text-center ${darkMode ? "bg-gray-800" : "bg-white"}`}>
                     <p className="text-gray-500 text-sm">Saldo</p>
                     <p className={balance >= 0 ? "text-green-500 text-2xl font-bold" : "text-red-500 text-2xl font-bold"}>
                         €{balance.toFixed(2)}
@@ -202,7 +212,7 @@ export default function Dashboard() {
                 </div>
 
             </div>
-
+            <Charts transactions={filteredTransactions} />
             <div className="bg-white p-6 rounded-lg shadow-md mb-8">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-bold">Orçamentos</h2>
