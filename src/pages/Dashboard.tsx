@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import Charts from "../components/Charts";
+import { jwtDecode } from "jwt-decode"
 
 interface Transaction {
     id: number;
@@ -37,6 +38,8 @@ export default function Dashboard() {
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const [darkMode, setDarkMode] = useState(false)
     const navigate = useNavigate();
+    const token = localStorage.getItem("token");
+    const user = token ? jwtDecode<{ "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name": string }>(token) : null;
 
     useEffect(() => {
         loadTransactions();
@@ -146,7 +149,12 @@ export default function Dashboard() {
     return (
         <div className={`min-h-screen p-8 ${darkMode ? "bg-gray-900" : "bg-gray-100"}`}>
             <div className="flex justify-between items-center mb-8">
-                <h1 className="text-3xl font-bold text-blue-600">FinTrack</h1>
+                <div>
+                    <h1 className="text-3xl font-bold text-blue-600">FinTrack</h1>
+                    <p className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-500"}`}>
+                        Olá, {user?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"]}! 👋
+                    </p>
+                </div>
                 <div className="flex gap-4">
                     <button
                         onClick={() => setDarkMode(!darkMode)}
@@ -196,7 +204,7 @@ export default function Dashboard() {
             </div>
 
             <div className="grid grid-cols-3 gap-4 mb-8">
-               <div className={`p-6 rounded-lg shadow-md text-center ${darkMode ? "bg-gray-800" : "bg-white"}`}>
+                <div className={`p-6 rounded-lg shadow-md text-center ${darkMode ? "bg-gray-800" : "bg-white"}`}>
                     <p className="text-gray-500 text-sm">Total Receitas</p>
                     <p className="text-green-500 text-2xl font-bold">+€{totalIncome.toFixed(2)}</p>
                 </div>
