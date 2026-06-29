@@ -12,6 +12,8 @@ interface Transaction {
     category: string;
     type: string;
     isFixed: boolean;
+    dueDate?: string;
+    isPaid: boolean;
 }
 
 interface Budget {
@@ -30,6 +32,7 @@ export default function Dashboard() {
     const [type, setType] = useState("Expense");
     const [isFixed, setIsFixed] = useState(false);
     const [installments, setInstallments] = useState(1);
+    const [dueDate, setDueDate] = useState("");
     const [budgets, setBudgets] = useState<Budget[]>([]);
     const [budgetCategory, setBudgetCategory] = useState("");
     const [budgetLimit, setBudgetLimit] = useState("");
@@ -98,7 +101,8 @@ export default function Dashboard() {
                 category,
                 type,
                 isFixed,
-                installments
+                installments,
+                dueDate: dueDate || null,
             });
             setDescription("");
             setAmount("");
@@ -107,6 +111,7 @@ export default function Dashboard() {
             loadTransactions();
             setIsFixed(false);
             setInstallments(1);
+            setDueDate("");
             alert("Transação adicionada com sucesso! ✅");
         } catch (err) {
             alert("Erro ao adicionar transação!");
@@ -145,6 +150,15 @@ export default function Dashboard() {
         .reduce((sum, t) => sum + t.amount, 0);
 
     const balance = totalIncome - totalExpense;
+
+    const handleTogglePaid = async (id: number) => {
+        try {
+            await api.patch(`/transaction/${id}/paid`);
+            loadTransactions();
+        } catch (err) {
+            alert("Erro ao atualizar transação!");
+        }
+    };
 
     return (
         <div className={`min-h-screen p-8 ${darkMode ? "bg-gray-900" : "bg-gray-100"}`}>
@@ -329,6 +343,17 @@ export default function Dashboard() {
                         <option value="Income">Receita</option>
                     </select>
                 </div>
+                <div className="flex items-center gap-4 mt-4">
+                    <label className={`font-bold ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                        Data de Vencimento:
+                    </label>
+                    <input
+                        type="date"
+                        value={dueDate}
+                        onChange={(e) => setDueDate(e.target.value)}
+                        className="border p-2 rounded"
+                    />
+                </div>
                 <div className="flex items-center gap-2 mt-4">
                     <div className="flex items-center gap-4 mt-4">
                         <label className="text-gray-700 font-bold">Parcelas</label>
@@ -376,11 +401,26 @@ export default function Dashboard() {
                             <div>
                                 <p className="font-bold">{t.description}</p>
                                 <p className="text-sm text-gray-500">{t.category}</p>
+                                {t.dueDate && (
+                                    <p className={`text-xs font-bold ${t.isPaid ? "text-green-500" :
+                                        new Date(t.dueDate) < new Date() ? "text-red-500" :
+                                            new Date(t.dueDate) < new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) ? "text-yellow-500" :
+                                                "text-gray-500"
+                                        }`}>
+                                        {t.isPaid ? "✅ Pago" : `⏰ Vence: ${new Date(t.dueDate).toLocaleDateString("pt-PT")}`}
+                                    </p>
+                                )}
                             </div>
                             <div className="flex items-center gap-4">
                                 <p className={t.type === "Income" ? "text-green-500 font-bold" : "text-red-500 font-bold"}>
                                     {t.type === "Income" ? "+" : "-"}€{t.amount}
                                 </p>
+                                <button
+                                    onClick={() => handleTogglePaid(t.id)}
+                                    className={`px-3 py-1 rounded text-white ${t.isPaid ? "bg-gray-500 hover:bg-gray-600" : "bg-green-500 hover:bg-green-600"}`}
+                                >
+                                    {t.isPaid ? "✅ Pago" : "Pagar"}
+                                </button>
                                 <button
                                     onClick={() => handleDelete(t.id)}
                                     className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
