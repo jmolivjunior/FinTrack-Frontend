@@ -48,6 +48,16 @@ export default function Login() {
         >
           Login
         </button>
+
+        <p className="text-center text-gray-500 mt-4">
+          Não tens conta?{" "}
+          <span
+          onClick={() => navigate("/register")}
+          className="text-blue-600 cursor-pointer hover:underline"
+          >
+            Criar Conta
+          </span>
+        </p>
       </div>
     </div>
   );
