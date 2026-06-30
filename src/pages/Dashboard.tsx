@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import Charts from "../components/Charts";
 import { jwtDecode } from "jwt-decode"
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 interface Transaction {
     id: number;
