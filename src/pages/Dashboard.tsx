@@ -33,6 +33,7 @@ export default function Dashboard() {
     const [isFixed, setIsFixed] = useState(false);
     const [installments, setInstallments] = useState(1);
     const [dueDate, setDueDate] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
     const [budgets, setBudgets] = useState<Budget[]>([]);
     const [budgetCategory, setBudgetCategory] = useState("");
     const [budgetLimit, setBudgetLimit] = useState("");
@@ -138,7 +139,8 @@ export default function Dashboard() {
         const date = new Date(t.date);
         const sameMonth = date.getMonth() + 1 === selectedMonth &&
             date.getFullYear() === selectedYear;
-        return sameMonth || t.isFixed;
+        const matchesSearch = t.description.toLowerCase().includes(searchTerm.toLowerCase());
+        return (sameMonth || t.isFixed) && matchesSearch;
     });
 
     const totalIncome = filteredTransactions
@@ -388,50 +390,61 @@ export default function Dashboard() {
                 </button>
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-md">
-                <h2 className="text-xl font-bold mb-4">Transações</h2>
-                {filteredTransactions.length === 0 ? (
-                    <p className="text-gray-500">Nenhuma transação encontrada.</p>
-                ) : (
-                    filteredTransactions.map((t) => (
-                        <div
-                            key={t.id}
-                            className="flex justify-between items-center border-b py-3"
-                        >
-                            <div>
-                                <p className="font-bold">{t.description}</p>
-                                <p className="text-sm text-gray-500">{t.category}</p>
-                                {t.dueDate && (
-                                    <p className={`text-xs font-bold ${t.isPaid ? "text-green-500" :
-                                        new Date(t.dueDate) < new Date() ? "text-red-500" :
-                                            new Date(t.dueDate) < new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) ? "text-yellow-500" :
-                                                "text-gray-500"
-                                        }`}>
-                                        {t.isPaid ? "✅ Pago" : `⏰ Vence: ${new Date(t.dueDate).toLocaleDateString("pt-PT")}`}
-                                    </p>
-                                )}
-                            </div>
-                            <div className="flex items-center gap-4">
-                                <p className={t.type === "Income" ? "text-green-500 font-bold" : "text-red-500 font-bold"}>
-                                    {t.type === "Income" ? "+" : "-"}€{t.amount}
-                                </p>
-                                <button
-                                    onClick={() => handleTogglePaid(t.id)}
-                                    className={`px-3 py-1 rounded text-white ${t.isPaid ? "bg-gray-500 hover:bg-gray-600" : "bg-green-500 hover:bg-green-600"}`}
-                                >
-                                    {t.isPaid ? "✅ Pago" : "Pagar"}
-                                </button>
-                                <button
-                                    onClick={() => handleDelete(t.id)}
-                                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                                >
-                                    Apagar
-                                </button>
-                            </div>
-                        </div>
-                    ))
-                )}
+            <div className={`p-6 rounded-lg shadow-md ${darkMode ? "bg-gray-800 text-white" : "bg-white"}`}>
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-bold">Transações</h2>
+                    <input
+                       type="text"
+                       placeholder="🔍 Pesquisar..."
+                       value={searchTerm}
+                       onChange={(e) => setSearchTerm(e.target.value)}
+                       className="border p-2 rounded w-64"
+                    />
+                </div>
+
             </div>
+            {filteredTransactions.length === 0 ? (
+                <p className="text-gray-500">Nenhuma transação encontrada.</p>
+            ) : (
+                filteredTransactions.map((t) => (
+                    <div
+                        key={t.id}
+                        className="flex justify-between items-center border-b py-3"
+                    >
+                        <div>
+                            <p className="font-bold">{t.description}</p>
+                            <p className="text-sm text-gray-500">{t.category}</p>
+                            {t.dueDate && (
+                                <p className={`text-xs font-bold ${t.isPaid ? "text-green-500" :
+                                    new Date(t.dueDate) < new Date() ? "text-red-500" :
+                                        new Date(t.dueDate) < new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) ? "text-yellow-500" :
+                                            "text-gray-500"
+                                    }`}>
+                                    {t.isPaid ? "✅ Pago" : `⏰ Vence: ${new Date(t.dueDate).toLocaleDateString("pt-PT")}`}
+                                </p>
+                            )}
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <p className={t.type === "Income" ? "text-green-500 font-bold" : "text-red-500 font-bold"}>
+                                {t.type === "Income" ? "+" : "-"}€{t.amount}
+                            </p>
+                            <button
+                                onClick={() => handleTogglePaid(t.id)}
+                                className={`px-3 py-1 rounded text-white ${t.isPaid ? "bg-gray-500 hover:bg-gray-600" : "bg-green-500 hover:bg-green-600"}`}
+                            >
+                                {t.isPaid ? "✅ Pago" : "Pagar"}
+                            </button>
+                            <button
+                                onClick={() => handleDelete(t.id)}
+                                className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                            >
+                                Apagar
+                            </button>
+                        </div>
+                    </div>
+                ))
+            )}
         </div>
+        
     );
 }
