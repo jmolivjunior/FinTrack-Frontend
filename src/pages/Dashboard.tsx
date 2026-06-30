@@ -53,6 +53,7 @@ export default function Dashboard() {
     const [showGoalForm, setShowGoalForm] = useState(false);
     const [darkMode, setDarkMode] = useState(false)
     const [currency, setCurrency] = useState("€");
+    const [exchangeRate, setExchangeRate] = useState<{ usd: number; brl: number } | null>(null);
     const navigate = useNavigate();
     const token = localStorage.getItem("token");
     const user = token ? jwtDecode<{ "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name": string }>(token) : null;
@@ -61,7 +62,21 @@ export default function Dashboard() {
         loadTransactions();
         loadBudgets();
         loadSavingsGoals();
+        loadExchangeRate();
     }, []);
+
+    const loadExchangeRate = async () => {
+        try {
+            const response = await fetch("https://api.exchangerate-api.com/v4/latest/EUR");
+            const data = await response.json();
+            setExchangeRate({
+                usd: data.rates.USD,
+                brl: data.rates.BRL,
+            });
+        } catch (err) {
+            console.log("Erro ao buscar cotação");
+        }
+    };
 
     const loadSavingsGoals = async () => {
         try {
@@ -294,6 +309,13 @@ export default function Dashboard() {
                     <option value={2029}>2029</option>
                 </select>
             </div>
+            {exchangeRate && (
+                <div className={`p-4 rounded-lg shadow-md mb-8 flex gap-6 items-center text-sm ${darkMode ? "bg-gray-800 text-white" : "bg-white"}`}>
+                    <span className="font-bold">💱 Cotação:</span>
+                    <span>1€ = ${exchangeRate.usd.toFixed(2)}</span>
+                    <span>1€ = R${exchangeRate.brl.toFixed(2)}</span>
+                </div>
+            )}
 
             <div className="grid grid-cols-3 gap-4 mb-8">
                 <div className={`p-6 rounded-lg shadow-md text-center ${darkMode ? "bg-gray-800" : "bg-white"}`}>
