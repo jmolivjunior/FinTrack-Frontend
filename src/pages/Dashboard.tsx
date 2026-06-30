@@ -24,6 +24,13 @@ interface Budget {
     year: number;
 }
 
+interface SavingsGoal {
+    id: number;
+    targetAmount: number;
+    month: number;
+    year: number;
+}
+
 export default function Dashboard() {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [description, setDescription] = useState("");
@@ -41,6 +48,9 @@ export default function Dashboard() {
     const [showBudgetForm, setShowBudgetForm] = useState(false);
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+    const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>([]);
+    const [goalAmount, setGoalAmount] = useState("");
+    const [showGoalForm, setShowGoalForm] = useState(false);
     const [darkMode, setDarkMode] = useState(false)
     const navigate = useNavigate();
     const token = localStorage.getItem("token");
@@ -49,7 +59,41 @@ export default function Dashboard() {
     useEffect(() => {
         loadTransactions();
         loadBudgets();
+        loadSavingsGoals();
     }, []);
+
+    const loadSavingsGoals = async () => {
+        try {
+            const response = await api.get("/savingsgoal");
+            setSavingsGoals(response.data);
+        } catch (err) {
+            console.log("Erro ao carregar metas");
+        }
+    };
+
+    const handleAddGoal = async () => {
+        try {
+            await api.post("/savingsgoal", {
+                targetAmount: parseFloat(goalAmount),
+                month: selectedMonth,
+                year: selectedYear,
+            });
+            setGoalAmount("");
+            setShowGoalForm(false);
+            loadSavingsGoals();
+        } catch (err) {
+            alert("Erro ao adicionar meta!");
+        }
+    };
+
+    const handleDeleteGoal = async (id: number) => {
+        try {
+            await api.delete(`/savingsgoal/${id}`);
+            loadSavingsGoals();
+        } catch (err) {
+            alert("Erro ao apagar meta!");
+        }
+    };
 
     const loadTransactions = async () => {
         try {
@@ -259,6 +303,66 @@ export default function Dashboard() {
 
             </div>
             <Charts transactions={filteredTransactions} />
+            <div className={`p-6 rounded-lg shadow-md mb-8 ${darkMode ? "bg-gray-800 text-white" : "bg-white"}`}>
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-bold">Meta de Poupança</h2>
+                    <button
+                        onClick={() => setShowGoalForm(!showGoalForm)}
+                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                    >
+                        {showGoalForm ? "Cancelar" : "+ Definir Meta"}
+                    </button>
+                </div>
+
+                {showGoalForm && (
+                    <div className="flex gap-4 mb-4">
+                        <input
+                            type="number"
+                            placeholder="Meta (€)"
+                            value={goalAmount}
+                            onChange={(e) => setGoalAmount(e.target.value)}
+                            className="border p-2 rounded flex-1"
+                        />
+                        <button
+                            onClick={handleAddGoal}
+                            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                        >
+                            Guardar Meta
+                        </button>
+                    </div>
+                )}
+
+                {savingsGoals.filter((g) => g.month === selectedMonth && g.year === selectedYear).map((g) => {
+                    const savedPercentage = Math.min((balance / g.targetAmount) * 100, 100);
+                    const goalReached = balance >= g.targetAmount;
+                    return (
+                        <div key={g.id}>
+                            <div className="flex justify-between items-center mb-1">
+                                <span className="font-bold">
+                                    {goalReached ? "🎉 Meta atingida!" : "Progresso da meta"}
+                                </span>
+                                <div className="flex items-center gap-2">
+                                    <span className={goalReached ? "text-green-500 font-bold" : "text-gray-600"}>
+                                        €{balance.toFixed(2)} / €{g.targetAmount.toFixed(2)}
+                                    </span>
+                                    <button
+                                        onClick={() => handleDeleteGoal(g.id)}
+                                        className="text-red-500 hover:text-red-700 text-sm"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-4">
+                                <div
+                                    className={`h-4 rounded-full ${goalReached ? "bg-green-500" : "bg-blue-500"}`}
+                                    style={{ width: `${Math.max(savedPercentage, 0)}%` }}
+                                />
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
             <div className="bg-white p-6 rounded-lg shadow-md mb-8">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-bold">Orçamentos</h2>
@@ -294,6 +398,9 @@ export default function Dashboard() {
                         </button>
                     </div>
                 )}
+
+
+
 
                 {budgets.filter((b) => b.month === selectedMonth && b.year === selectedYear).map((b) => {
                     const spent = filteredTransactions
