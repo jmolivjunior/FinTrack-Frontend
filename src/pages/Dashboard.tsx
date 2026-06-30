@@ -58,6 +58,7 @@ export default function Dashboard() {
     const token = localStorage.getItem("token");
     const user = token ? jwtDecode<{ "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name": string }>(token) : null;
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         loadTransactions();
         loadBudgets();
