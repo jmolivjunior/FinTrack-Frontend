@@ -52,6 +52,7 @@ export default function Dashboard() {
     const [goalAmount, setGoalAmount] = useState("");
     const [showGoalForm, setShowGoalForm] = useState(false);
     const [darkMode, setDarkMode] = useState(false)
+    const [currency, setCurrency] = useState("€");
     const navigate = useNavigate();
     const token = localStorage.getItem("token");
     const user = token ? jwtDecode<{ "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name": string }>(token) : null;
@@ -238,6 +239,15 @@ export default function Dashboard() {
                     </p>
                 </div>
                 <div className="flex gap-4">
+                    <select
+                        value={currency}
+                        onChange={(e) => setCurrency(e.target.value)}
+                        className="border p-2 rounded"
+                    >
+                        <option value="€">€ Euro</option>
+                        <option value="$">$ Dólar</option>
+                        <option value="R$">R$ Real</option>
+                    </select>
                     <button
                         onClick={() => setDarkMode(!darkMode)}
                         className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800"
@@ -288,16 +298,16 @@ export default function Dashboard() {
             <div className="grid grid-cols-3 gap-4 mb-8">
                 <div className={`p-6 rounded-lg shadow-md text-center ${darkMode ? "bg-gray-800" : "bg-white"}`}>
                     <p className="text-gray-500 text-sm">Total Receitas</p>
-                    <p className="text-green-500 text-2xl font-bold">+€{totalIncome.toFixed(2)}</p>
+                    <p className="text-green-500 text-2xl font-bold">+{currency}{totalIncome.toFixed(2)}</p>
                 </div>
                 <div className={`p-6 rounded-lg shadow-md text-center ${darkMode ? "bg-gray-800" : "bg-white"}`}>
                     <p className="text-gray-500 text-sm">Total Despesas</p>
-                    <p className="text-red-500 text-2xl font-bold">-€{totalExpense.toFixed(2)}</p>
+                    <p className="text-red-500 text-2xl font-bold">-{currency}{totalExpense.toFixed(2)}</p>
                 </div>
                 <div className={`p-6 rounded-lg shadow-md text-center ${darkMode ? "bg-gray-800" : "bg-white"}`}>
                     <p className="text-gray-500 text-sm">Saldo</p>
                     <p className={balance >= 0 ? "text-green-500 text-2xl font-bold" : "text-red-500 text-2xl font-bold"}>
-                        €{balance.toFixed(2)}
+                        {currency}{balance.toFixed(2)}
                     </p>
                 </div>
 
@@ -343,7 +353,7 @@ export default function Dashboard() {
                                 </span>
                                 <div className="flex items-center gap-2">
                                     <span className={goalReached ? "text-green-500 font-bold" : "text-gray-600"}>
-                                        €{balance.toFixed(2)} / €{g.targetAmount.toFixed(2)}
+                                        {currency}{balance.toFixed(2)} / {currency}{g.targetAmount.toFixed(2)}
                                     </span>
                                     <button
                                         onClick={() => handleDeleteGoal(g.id)}
@@ -414,7 +424,7 @@ export default function Dashboard() {
                                 <span className="font-bold">{b.category}</span>
                                 <div className="flex items-center gap-2">
                                     <span className={isOver ? "text-red-500 font-bold" : "text-gray-600"}>
-                                        €{spent.toFixed(2)} / €{b.limit.toFixed(2)}
+                                        {currency}{spent.toFixed(2)} / {currency}{b.limit.toFixed(2)}
                                     </span>
                                     <button
                                         onClick={() => handleDeleteBudget(b.id)}
@@ -432,7 +442,7 @@ export default function Dashboard() {
                             </div>
                             {isOver && (
                                 <p className="text-red-500 text-sm mt-1">
-                                    ⚠️ Ultrapassaste o orçamento em €{(spent - b.limit).toFixed(2)}!
+                                    ⚠️ Ultrapassaste o orçamento em {currency}{(spent - b.limit).toFixed(2)}!
                                 </p>
                             )}
                         </div>
@@ -496,7 +506,7 @@ export default function Dashboard() {
                             className="border p-2 rounded w-20"
                         />
                         <span className="text-gray-500 text-sm">
-                            {installments > 1 ? `${installments}x de €${amount ? (parseFloat(amount) / installments).toFixed(2) : "0.00"}` : "Pagamento único"}
+                            {installments > 1 ? `${installments}x de ${amount ? (parseFloat(amount) / installments).toFixed(2) : "0.00"}` : "Pagamento único"}
                         </span>
                     </div>
                     <input
@@ -567,7 +577,7 @@ export default function Dashboard() {
                             </div>
                             <div className="flex items-center gap-4">
                                 <p className={t.type === "Income" ? "text-green-500 font-bold" : "text-red-500 font-bold"}>
-                                    {t.type === "Income" ? "+" : "-"}€{t.amount}
+                                    {t.type === "Income" ? "+" : "-"}{currency}{t.amount}
                                 </p>
                                 <button
                                     onClick={() => handleEdit(t)}
